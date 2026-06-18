@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import accuracy_score, mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -82,12 +82,22 @@ def evaluate_model(model, X_train, X_test, y_train, y_test) -> dict:
     y_pred = model.predict(X_test)
 
     mae = mean_absolute_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = np.sqrt(mse)
     r2 = r2_score(y_test, y_pred)
+
+    # For regression tasks, accuracy is not the usual metric.
+    # We compute a simple rounded accuracy proxy for display purposes.
+    accuracy = accuracy_score(
+        (y_test >= 50).astype(int),
+        (y_pred >= 50).astype(int),
+    )
 
     return {
         "model": model,
+        "accuracy": accuracy,
         "mae": mae,
+        "mse": mse,
         "rmse": rmse,
         "r2": r2,
     }
@@ -126,9 +136,11 @@ def main() -> None:
         results[name] = metrics
 
         print(f"{name}:")
-        print(f"  MAE : {metrics['mae']:.2f}")
-        print(f"  RMSE: {metrics['rmse']:.2f}")
-        print(f"  R2  : {metrics['r2']:.4f}")
+        print(f"  Accuracy: {metrics['accuracy']:.4f}")
+        print(f"  MAE     : {metrics['mae']:.2f}")
+        print(f"  MSE     : {metrics['mse']:.2f}")
+        print(f"  RMSE    : {metrics['rmse']:.2f}")
+        print(f"  R2      : {metrics['r2']:.4f}")
 
     # Select best model by highest R2 score
     best_model_name = max(results, key=lambda name: results[name]["r2"])

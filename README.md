@@ -33,6 +33,13 @@ This project is an AI/ML-based web application that predicts a student's final a
   - Random Forest Regressor
 - The best-performing model is saved for use in the web app.
 
+## Model Evaluation Metrics
+- Accuracy Score (classification-style threshold view for grade pass/fail)
+- Mean Absolute Error (MAE)
+- Mean Squared Error (MSE)
+- Root Mean Squared Error (RMSE)
+- R² Score
+
 ## Setup Instructions
 1. Create and activate a Python virtual environment.
 2. Install dependencies:
