@@ -1,10 +1,19 @@
 import pickle
+
 import numpy as np
-from flask import Flask, render_template, request, jsonify
+import pandas as pd
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
 MODEL_PATH = "model.pkl"
+FEATURE_COLUMNS = [
+    "study_hours_per_day",
+    "attendance_percentage",
+    "assignments_completed",
+    "previous_semester_marks",
+    "class_participation",
+]
 
 with open(MODEL_PATH, "rb") as model_file:
     model = pickle.load(model_file)
@@ -37,7 +46,10 @@ def predict():
     except (TypeError, ValueError):
         return jsonify({"success": False, "message": "Invalid input values."}), 400
 
-    features = np.array([[study_hours, attendance, assignments, previous_marks, participation]])
+    features = pd.DataFrame(
+        [[study_hours, attendance, assignments, previous_marks, participation]],
+        columns=FEATURE_COLUMNS,
+    )
     prediction = model.predict(features)
     final_grade = float(np.clip(prediction[0], 0, 100))
     category = performance_category(final_grade)
@@ -51,4 +63,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)

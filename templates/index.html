@@ -7,34 +7,38 @@
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>Student Performance Predictor</h1>
-      <p>Enter the student details and predict the final academic grade.</p>
-      <form id="prediction-form">
-        <div class="field-group">
-          <label for="study_hours">Study Hours Per Day</label>
-          <input id="study_hours" name="study_hours" type="number" step="0.1" min="0" max="12" required />
-        </div>
-        <div class="field-group">
-          <label for="attendance">Attendance Percentage</label>
-          <input id="attendance" name="attendance" type="number" step="0.1" min="0" max="100" required />
-        </div>
-        <div class="field-group">
-          <label for="assignments">Assignments Completed</label>
-          <input id="assignments" name="assignments" type="number" min="0" max="10" required />
-        </div>
-        <div class="field-group">
-          <label for="previous_marks">Previous Semester Marks</label>
-          <input id="previous_marks" name="previous_marks" type="number" step="0.1" min="0" max="100" required />
-        </div>
-        <div class="field-group">
-          <label for="participation">Class Participation (1-5)</label>
-          <input id="participation" name="participation" type="number" min="1" max="5" required />
-        </div>
-        <button type="submit">Predict Performance</button>
-      </form>
-      <div id="result" class="result"></div>
-    </div>
+    <main class="app-shell">
+      <section class="card">
+        <h1>Student Performance Predictor</h1>
+        <p class="subtitle">Enter the student details to estimate final performance.</p>
+
+        <form id="prediction-form">
+          <div class="field-grid">
+            <div class="field-group">
+              <label for="study_hours">Study Hours</label>
+              <input id="study_hours" name="study_hours" type="number" step="0.1" min="0" max="12" placeholder="e.g. 4.5" required />
+            </div>
+            <div class="field-group">
+              <label for="attendance">Attendance</label>
+              <input id="attendance" name="attendance" type="number" step="0.1" min="0" max="100" placeholder="e.g. 92" required />
+            </div>
+            <div class="field-group">
+              <label for="assignments">Assignments Completed</label>
+              <input id="assignments" name="assignments" type="number" min="0" max="10" placeholder="e.g. 8" required />
+            </div>
+            <div class="field-group">
+              <label for="previous_marks">Previous Marks</label>
+              <input id="previous_marks" name="previous_marks" type="number" step="0.1" min="0" max="100" placeholder="e.g. 78" required />
+            </div>
+          </div>
+          <button type="submit">Predict Performance</button>
+        </form>
+
+        <section id="result" class="result" aria-live="polite">
+          <p class="result-placeholder">Prediction will appear here.</p>
+        </section>
+      </section>
+    </main>
 
     <script>
       const form = document.getElementById("prediction-form");
@@ -42,14 +46,15 @@
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        resultBox.textContent = "Predicting...";
+        resultBox.className = "result loading";
+        resultBox.innerHTML = '<span>Predicting...</span>';
 
         const data = {
           study_hours: document.getElementById("study_hours").value,
           attendance: document.getElementById("attendance").value,
           assignments: document.getElementById("assignments").value,
           previous_marks: document.getElementById("previous_marks").value,
-          participation: document.getElementById("participation").value,
+          participation: 3,
         };
 
         try {
@@ -61,17 +66,30 @@
 
           const json = await response.json();
           if (!json.success) {
-            resultBox.textContent = json.message || "Prediction failed.";
+            resultBox.className = "result";
+            resultBox.innerHTML = `<p class="result-error">${json.message || "Prediction failed."}</p>`;
             return;
           }
 
+          const category = json.performance_category.toLowerCase().replace(/\s+/g, "-");
+          resultBox.className = "result";
           resultBox.innerHTML = `
-            <p><strong>Predicted Grade:</strong> ${json.predicted_grade}</p>
-            <p><strong>Performance Category:</strong> ${json.performance_category}</p>
-            <p>${json.message}</p>
+            <div class="result-grid">
+              <div>
+                <span class="result-label">Predicted Grade</span>
+                <h2>${json.predicted_grade}</h2>
+              </div>
+              <div>
+                <span class="result-label">Performance Category</span>
+                <h2>${json.performance_category}</h2>
+                <span class="result-badge ${category}">${json.performance_category}</span>
+              </div>
+            </div>
+            <p class="result-message">${json.message}</p>
           `;
         } catch (error) {
-          resultBox.textContent = "Unable to reach the prediction service.";
+          resultBox.className = "result";
+          resultBox.innerHTML = '<p class="result-error">Unable to reach the prediction service.</p>';
         }
       });
     </script>
